@@ -103,7 +103,7 @@ def faceVerification():
     person = request.args['person']
     print("Image and person received")
     img = img_to_array(img)
-    expected_face = np.array(im.open("./resource/"+person+".txt"))  # TODO change to .txt with an array of values this way we don't store the face
+    expected_face = np.load("./resource/"+person+".npy")
     result = compare_faces(img,expected_face)
     if result:
         print("Face verified")
@@ -121,17 +121,14 @@ def registerFace():
 @app.route('/saveFace', methods=['POST'])
 def saveFace():
     print("Saving new registered face ") 
-    person = request.args['person']
-    print("person received")
-    requests.post("http://192.168.2.2/faceExtract", data = {'person':person, 'register': 1})
     img = request.args['file'] 
     person = request.args['person']
     print("Image and person received")
-    img = img_to_array(img) # replace with numpy array function
+    img = np.array(img) # TODO img probably not on the right var format since I'm taking it from a request 
     with open("./resource/"+person+'.npy', 'wb') as f:
         np.save(f, img)
 
-@app.route('/registerNFC', methods=['POST']) # TODO probably not like this but needs to be checked 
+@app.route('/registerNFC', methods=['POST']) # TODO probably not like this 
 def registerFace():
     print("NFC registration started") 
     person = request.args['person']
