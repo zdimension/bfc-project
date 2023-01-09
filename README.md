@@ -5,7 +5,7 @@
 ```mermaid
 graph LR
     F[LAN] --> |Ethernet| A
-    A["RPi\n(server)"] --> |Wi-Fi| B["RPi\n(door)"]
+    A["RPi<br>(server)"] --> |Wi-Fi| B["RPi<br>(door)"]
     B --> |USB| C[Webcam]
     B --> |USB| D[NFC reader]
     B --> |tbd| E[Door lock]
