@@ -8,11 +8,12 @@ graph LR
     A["RPi<br>(server)"] --- |Wi-Fi| B["RPi<br>(door)"]
     B --- |USB| C[Webcam]
     B --- |USB| D[NFC reader]
-    B --- |tbd| E[Door lock]
+    B --- |Wi-Fi| I[Arduino]
     B --- |GPIO| G[Status LEDs]
     A --- |Wi-Fi| H[User device]
+    I --- |tbd| J[Door lock]
 
     subgraph " "
-        C;D;E;G;B
+        C;D;G;B
     end
 ```
