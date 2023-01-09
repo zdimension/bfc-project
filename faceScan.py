@@ -13,6 +13,8 @@ import time # Provides time-related functions
 from numpy import asarray
 from mtcnn.mtcnn import MTCNN
 
+app = flask.Flask(__name__)
+
 # extract a single face from a given photograph
 def extract_face(img, required_size=(224, 224)):
     # create the detector, using default weights
