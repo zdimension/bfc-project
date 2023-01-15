@@ -1,9 +1,17 @@
 import os
 import cv2
 
-# Importing Image module from PIL package
-import flask
 import requests
+from typing import Union
+from pydantic import BaseModel
+from fastapi import FastAPI
+
+app = FastAPI(ssl_keyfile="key.pem", ssl_certfile="cert.pem")
+
+class Person(BaseModel):
+    name: str
+    register: int
+# Importing Image module from PIL package
 import PIL
 from PIL import Image as im
 from picamera.array import PiRGBArray # Generates a 3D RGB array
@@ -13,7 +21,7 @@ import time # Provides time-related functions
 from numpy import asarray
 from mtcnn.mtcnn import MTCNN
 
-app = flask.Flask(__name__)
+#app = flask.Flask(__name__)
 
 # extract a single face from a given photograph
 def extract_face(img, required_size=(224, 224)):
@@ -73,12 +81,14 @@ def get_webcam_face():
     #cap.release()
     print("release")
     return img
+#get_webcam_face()
+print("ok")
 
 # add an argument to main which contains a string of a person name
-@app.route('/faceExtract', methods=['POST'])
-def faceExtract():
-    name = request.form['person'] 
-    isRegistration = request.form['register']   
+@app.post('/faceExtract')
+def faceExtract(person: Person):
+    name = person.name
+    isRegistration = person.register
     print("Starting face scan")
     actual_face = get_webcam_face()
     # save image
@@ -86,11 +96,7 @@ def faceExtract():
     #send the image over https to server 192.168.102.1
     with open(filename, 'rb') as f:
         if (isRegistration == 1):
-            r = requests.post('https://192.168.2.1/saveFace', files={'file': f, 'person':name})
+            r = requests.post('https://10.10.10.1/saveFace', files={'file': f, 'person':name})
         else:
-            r = requests.post('https://192.168.2.1/faceVerification', files={'file': f, 'person':name}) #todo : change the ip address to the server ip address
+            r = requests.post('https://10.10.10.1/faceVerification', files={'file': f, 'person':name}) #todo : change the ip address to the server ip address
     print(r.text)
-
-if __name__ == '__main__':
-    app.run(host='192.168.2.2', port=5000, debug=True)
-    

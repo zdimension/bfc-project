@@ -1,8 +1,26 @@
 import os
-import flask 
 import requests
+from typing import Union
+from pydantic import BaseModel
+from fastapi import FastAPI
 
-app = flask.Flask(__name__)
+app = FastAPI(ssl_keyfile="key.pem", ssl_certfile="cert.pem")
+
+class Image(BaseModel):
+    file: Union[str, bytes]
+    person: str
+
+class Nfc(BaseModel):
+    personTag: str
+
+class Person(BaseModel):
+    name: str
+    register: int
+
+class DoorPi(BaseModel):
+    ipAddress : str
+
+doorPiIP = None
 
 import numpy as np
 from tensorflow.keras.models import Sequential
@@ -80,10 +98,10 @@ def compare_faces(face1, face2):
     embeddings2 = get_embeddings(face2)
     return is_match(embeddings1, embeddings2)
 
-@app.route('/NfcVerification', methods=['POST'])
-def NfcVerification():
+@app.post('/NfcVerification')
+def NfcVerification(nfc: Nfc, person: Person):
     print("Nfc verification started")
-    personTag = request.args['personTag']
+    personTag = nfc.personTag
     print("PersonTag received")
     # read a file line by line in /resource/ and check if personTag is present
     with open("./resource/tags.txt", "r") as f:
@@ -91,48 +109,56 @@ def NfcVerification():
             val = line.strip(' ')
             if personTag == val[1]:
                 print("PersonTag verified")
-                requests.post("http://192.168.2.2/faceExtract", data = {'person':val[0], 'register': 0})
+                requests.post(doorPiIP+"/faceExtract", data = person)
                 break
         print("PersonTag not verified") 
     return "Nfc verification completed"
 
-@app.route('/faceVerification', methods=['POST'])
-def faceVerification():
+@app.post('/faceVerification')
+def faceVerification(image: Image):
     print("Face verification started")
-    img = request.args['file'] 
-    person = request.args['person']
+    img = image.file
+    person = image.person
     print("Image and person received")
     img = img_to_array(img)
     expected_face = np.load("./resource/"+person+".npy")
     result = compare_faces(img,expected_face)
     if result:
         print("Face verified")
-        requests.post("http://192.168.2.3/doorUnlock")
+        #requests.post("http://192.168.2.3/doorUnlock")
+        # TODO Replace with bluetooth unlock module
     else:
         print("Face not verified")
 
-@app.route('/registerFace', methods=['POST'])
-def registerFace():
+@app.post('/registerFace')
+def registerFace(person: Person):
     print("Face registration started") 
-    person = request.args['person']
     print("person received")
-    requests.post("http://192.168.2.2/faceExtract", data = {'person':person, 'register': 1})
+    requests.post(doorPiIP+"/faceExtract", data = person)
+    return "ok"
 
-@app.route('/saveFace', methods=['POST'])
-def saveFace():
+@app.post('/saveFace')
+def saveFace(image: Image):
     print("Saving new registered face ") 
-    img = request.args['file'] 
-    person = request.args['person']
+    img = image.file
+    person = image.person
     print("Image and person received")
     img = np.array(img) # TODO img probably not on the right var format since I'm taking it from a request 
     with open("./resource/"+person+'.npy', 'wb') as f:
         np.save(f, img)
-
-@app.route('/registerNFC', methods=['POST']) # TODO probably not like this 
-def registerFace():
+    return "ok"
+"""
+@app.post('/registerNFC') # TODO probably not like this 
+def registerFace(person: Person):
     print("NFC registration started") 
-    person = request.args['person']
     print("person received")
-    requests.post("http://192.168.2.2/", data = {'person':person, 'register': 1}) # TODO add registerNFC function to the server^l 
-if __name__ == '__main__':
-    app.run(host='192.168.2.1', port=5000, debug=True)
+    requests.post(doorPiIP"/registerNFC", data = person) # TODO add registerNFC function to the server
+    return "ok"
+"""
+
+
+@app.post('/initilize')
+def initilize(doorPi: DoorPi):
+    print("Initilization started")
+    doorPiIP = doorPi.ipAddress
+    return "Ip address received and saved"
