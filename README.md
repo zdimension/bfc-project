@@ -47,3 +47,4 @@ There is a button on the Raspberry.
 
 ### Adding people (NFC badge and face)  
 A computer or smartphone can connect to the private wifi. From there, it has access to a web page that allows it to configure the registered people. It can also switch the door's rasp to "recording" mode where the cameras will take pictures that will allow to record a new face. This operation must be repeated for each camera. This operation must be done once to register the badge.  
+
