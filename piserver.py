@@ -57,7 +57,7 @@ def compare_faces(face1, face2):
     return is_match(embeddings1, embeddings2)
 
 @app.post('/NfcVerification')
-def NfcVerification(nfc: Nfc, person: Person):
+def NfcVerification(nfc: Nfc):
     print("Nfc verification started")
     personTag = nfc.personTag
     print("PersonTag received")
@@ -67,11 +67,11 @@ def NfcVerification(nfc: Nfc, person: Person):
             val = line.strip(' ')
             if personTag == val[1]:
                 print("PersonTag verified")
-                requests.post(doorPiIP+"/faceExtract", data = person)
-                break
-        print("PersonTag not verified") 
-    return "Nfc verification completed"
-"""
+                requests.post("https://DoorPi:8000/faceExtract", json = {"name":val[0], "isRegister":0}, verify="/usr/share/ca-certificates/cert.pem")
+                return "Nfc verification completed"
+    return "PersonTag not verified"
+    
+""" TODO : bluetooth unlock module
 @app.post('/faceVerification')
 def faceVerification(image: UploadFile, person: Person):
     print("Face verification started")
@@ -94,7 +94,7 @@ def faceVerification(image: UploadFile, person: Person):
 def registerFace(person: Person):
     print("Face registration started") 
     print("person received")
-    requests.post(doorPiIP+"/faceExtract", data = person)
+    requests.post("https://DoorPi:8000/faceExtract", json = person, verify="/usr/share/ca-certificates/cert.pem")
     return "ok"
 
 """
@@ -113,7 +113,7 @@ def saveFace(image: UploadFile, person: Person):
 def registerFace(person: Person):
     print("NFC registration started") 
     print("person received")
-    requests.post(doorPiIP"/registerNFC", data = person) # TODO add registerNFC function to the server
+    requests.post("https://DoorPi:8000/registerNFC", data = person) # TODO add registerNFC function to the server
     return "ok"
 """
 #  WORKS YAY
@@ -126,6 +126,8 @@ def initilize(doorPi: DoorPi):
     os.system("sudo python ./updateHosts.py "+doorPiIP)
     return "Ip address received and saved"
 
+""" no longer necessary
 @app.get('/initIP')
 def test():
     return doorPiIP
+"""
