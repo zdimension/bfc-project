@@ -10,6 +10,10 @@ from fastapi import FastAPI, File, UploadFile
 
 app = FastAPI(ssl_keyfile="key.pem", ssl_certfile="cert.pem")
 
+class Image(BaseModel):
+    imageArray: list = []
+    name : str
+
 class Nfc(BaseModel):
     personTag: str
 
@@ -24,8 +28,7 @@ doorPiIP = None
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.preprocessing.image import img_to_array
-from tensorflow.keras.applications.imagenet_utils import preprocess_input
+from tensorflow.keras.applications.vgg16 import preprocess_input
 from scipy.spatial.distance import cosine
 
 # Load VGG Face model weights
@@ -33,16 +36,16 @@ model = tf.keras.models.load_model('vggface')
     
 # extract faces and calculate face embeddings for a list of photo files
 def get_embeddings(img):
-    # extract faces
-    test = []
-    test.append(img)
-    faces = [extract_face(f) for f in test]
+
     # convert into an array of samples
-    samples = asarray(faces, 'float32')
+    
+    #samples = np.asarray(img, 'float32')
+    img = np.expand_dims(img, axis=0)
+    
     # prepare the face for the model, e.g. center pixels
-    samples = preprocess_input(samples, version=2)
+    samples = preprocess_input(img)
     # perform prediction
-    yhat = model.predict(samples)
+    yhat = np.squeeze(model.predict(samples), axis=0)
     return yhat
  
 # determine if a candidate face is a match for a known face
@@ -52,7 +55,9 @@ def is_match(known_embedding, candidate_embedding, thresh=0.5):
     return score <= thresh
     
 def compare_faces(face1, face2):
+    print("Get first face embedding from DoorPi")
     embeddings1 = get_embeddings(face1)
+    print("Get second face embedding from saved vector image")
     embeddings2 = get_embeddings(face2)
     return is_match(embeddings1, embeddings2)
 
@@ -71,15 +76,13 @@ def NfcVerification(nfc: Nfc):
                 return "Nfc verification completed"
     return "PersonTag not verified"
     
-""" TODO : bluetooth unlock module
 @app.post('/faceVerification')
-def faceVerification(image: UploadFile, person: Person):
+def faceVerification(image: Image):
     print("Face verification started")
-    img = image.file
-    person = person.person
+    img = np.asarray(image.imageArray)
+    name = image.name
     print("Image and person received")
-    img = img_to_array(img)
-    expected_face = np.load("./resource/"+person+".npy")
+    expected_face = np.load("./resource/"+name+".npy")
     result = compare_faces(img,expected_face)
     if result:
         print("Face verified")
@@ -87,36 +90,32 @@ def faceVerification(image: UploadFile, person: Person):
         # TODO Replace with bluetooth unlock module
     else:
         print("Face not verified")
-"""
 
 
 @app.post('/registerFace')
 def registerFace(person: Person):
     print("Face registration started") 
     print("person received")
-    requests.post("https://DoorPi:8000/faceExtract", json = person, verify="/usr/share/ca-certificates/cert.pem")
+    requests.post("https://DoorPi:8000/faceExtract", json = {"name": person.name,"isRegister": person.isRegister}, verify="/usr/share/ca-certificates/cert.pem")
     return "ok"
 
-"""
+
 @app.post('/saveFace')
-def saveFace(image: UploadFile, person: Person):
+def saveFace(image: Image):
     print("Saving new registered face ") 
-    img = image.file
-    person = person.person
-    print("Image and person received")
-    img = np.array(img) # TODO img probably not on the right file format since I'm taking it from a request 
-    with open("./resource/"+person+'.npy', 'wb') as f:
+    img = np.asarray(image.imageArray)
+    name = image.name
+    with open("./resource/"+name+'.npy', 'wb') as f:
         np.save(f, img)
     return "ok"
 
-@app.post('/registerNFC') # TODO probably not like this 
+"""@app.post('/registerNFC') # TODO probably not like this 
 def registerFace(person: Person):
     print("NFC registration started") 
     print("person received")
     requests.post("https://DoorPi:8000/registerNFC", data = person) # TODO add registerNFC function to the server
     return "ok"
 """
-#  WORKS YAY
 
 @app.post('/init')
 def initilize(doorPi: DoorPi):

@@ -85,6 +85,7 @@ def get_webcam_face():
             break
         raw_capture.truncate(0)
     #cap.release()
+    camera.close()
     print("release")
     return img
 #get_webcam_face()
@@ -94,18 +95,19 @@ print("ok")
 @app.post('/faceExtract')
 def faceExtract(person: Person):
     name = person.name
-    isRegistration = person.register
+    isRegistration = person.isRegister
     print("Starting face scan")
     actual_face = extract_face(get_webcam_face())
     # save image
-    filename = saveImage(actual_face,'jpg')
+    #filename = saveImage(actual_face,'jpg')
     #send the image over https to server
-    with open(filename, 'rb') as f:
-        if (isRegistration == 1):
-            r = requests.post('https://rasp-manager/saveFace', files={'file': f, 'person':name})
-        else:
-            r = requests.post('https://rasp-manager/faceVerification', files={'file': f, 'person':name})
+    #transform the actual_face numpy array to a python list
+    actual_face = actual_face.tolist()
+    if (isRegistration == 1):
+        r = requests.post('https://rasp-manager:8000/saveFace', json={'imageArray': actual_face, 'name':name}, verify="/usr/share/ca-certificates/cert.pem")
+    else:
+        r = requests.post('https://rasp-manager:8000/faceVerification', json={'imageArray':actual_face, 'name':name}, verify="/usr/share/ca-certificates/cert.pem")
     print(r.text)
     #delete the image
-    os.remove(filename)
+    #os.remove(filename)
     return r.text
