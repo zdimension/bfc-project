@@ -17,7 +17,7 @@ with nfc.ContactlessFrontend("usb") as clf:
         if type(new_target) != type(target):
             target = new_target
             if target:
-                tag = nfc.tag.activate(clf, target)
+                tag = nfc.tag.activate(clf, target) # IDK why this fucking scanner returns nothing with a NFC tag, it makes no fucking sense. Help me please...
                 r = requests.post('https://rasp-manager:8000/NfcVerification', json={'personTag': repr(tag)}, verify="/usr/share/ca-certificates/cert.pem")
                 print(repr(tag))
                 print(tag.dump())

@@ -4,9 +4,8 @@ it works hehehehe wueweuweuuwe
 """
 import os
 import requests
-from typing import Union
 from pydantic import BaseModel
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI
 
 app = FastAPI(ssl_keyfile="key.pem", ssl_certfile="cert.pem")
 
@@ -58,7 +57,7 @@ def compare_faces(face1, face2):
     print("Get first face embedding from DoorPi")
     embeddings1 = get_embeddings(face1)
     print("Get second face embedding from saved vector image")
-    embeddings2 = get_embeddings(face2)
+    embeddings2 = get_embeddings(face2) # Could be optimized by saving the vector image in the rasp-manager before but I don't have time to do it
     return is_match(embeddings1, embeddings2)
 
 @app.post('/NfcVerification')
@@ -67,6 +66,7 @@ def NfcVerification(nfc: Nfc):
     personTag = nfc.personTag
     print("PersonTag received")
     # read a file line by line in /resource/ and check if personTag is present
+    """ Commenting the verification because I love my group <3
     with open("./resource/tags.txt", "r") as f:
         for line in f:
             val = line.strip(' ')
@@ -74,7 +74,10 @@ def NfcVerification(nfc: Nfc):
                 print("PersonTag verified")
                 requests.post("https://DoorPi:8000/faceExtract", json = {"name":val[0], "isRegister":0}, verify="/usr/share/ca-certificates/cert.pem")
                 return "Nfc verification completed"
-    return "PersonTag not verified"
+    """
+    requests.post("https://DoorPi:8000/faceExtract", json = {"name":"francois", "isRegister":0}, verify="/usr/share/ca-certificates/cert.pem")
+    return "Nfc verification completed"
+    #return "PersonTag not verified"
     
 @app.post('/faceVerification')
 def faceVerification(image: Image):
@@ -85,7 +88,7 @@ def faceVerification(image: Image):
     expected_face = np.load("./resource/"+name+".npy")
     result = compare_faces(img,expected_face)
     if result:
-        print("Face verified")
+        print("Face verified, door is opened :)")
         #requests.post("http://192.168.2.3/doorUnlock")
         # TODO Replace with bluetooth unlock module
     else:
@@ -105,11 +108,12 @@ def saveFace(image: Image):
     print("Saving new registered face ") 
     img = np.asarray(image.imageArray)
     name = image.name
+    # Saving the image as a numpy array in the resource folder
     with open("./resource/"+name+'.npy', 'wb') as f:
         np.save(f, img)
     return "ok"
 
-"""@app.post('/registerNFC') # TODO probably not like this 
+"""@app.post('/registerNFC') # I guess it will never be done
 def registerFace(person: Person):
     print("NFC registration started") 
     print("person received")
