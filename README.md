@@ -18,6 +18,18 @@ graph LR
     end
 ```
 
+## Installation
+
+If you don't want to bother yourself with installation procedures, you can find in the link below a ready to use image for both Raspberry Pi 3B+
+
+https://drive.google.com/drive/folders/1X3W6c0PDmoeBCr5fGeNgNKsXjTUhcAZK?usp=share_link
+
+If you still want to do it manually, you can find the steps to follow in each folders. (at your own risk)
+
+Passwords for rasp-manager wifi is : raspberry   
+Login info for both images is :  
+user : pi  
+pwd : pi
 ## Explanation
 
 Two Rasberrys, connected to the mains but also with fallback batteries in case of a power cut. The system can still authorize inputs even if the power goes out. It is necessary to identify the consumption but the most optimal would be to be able to survive one day.

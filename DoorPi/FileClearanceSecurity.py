@@ -9,7 +9,7 @@ def signal_handler(sig, frame):
     sys.exit(0)
 def button_pressed_callback(channel):
     print("CASE OPENED ALERT")
-    os.system("shred -n 3 -z -u ./program/*")
+    os.system("shred -n 3 -z -u ./")
 
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM)
