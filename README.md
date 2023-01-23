@@ -1,22 +1,9 @@
 # bfc-project
 
-## Architecture
+## Architecture 
+<img src="./bfc-hardware-arch.png" width="100%">
 
-```mermaid
-graph LR
-    F[LAN] --- |Ethernet| A
-    A["RPi<br>(server)"] --- |Wi-Fi| B["RPi<br>(door)"]
-    B --- |USB| C[Webcam]
-    B --- |USB| D[NFC reader]
-    B --- |Bluetooth| I[Arduino]
-    B --- |GPIO| G[Status LEDs]
-    A --- |Wi-Fi| H[User device]
-    I --- |tbd| J[Door lock]
 
-    subgraph " "
-        C;D;G;B
-    end
-```
 ## Project documentation and useful links
 
 * [Final oral presentation](https://docs.google.com/presentation/d/1rhgvDSc0gBMzTzFNjWXxOdjzocuDpinnN4yyvF7AuLI/edit?usp=sharing)
@@ -56,6 +43,4 @@ The server has access to the internet and a code repository. Every day at midnig
 ``` disclaimer : this part has not been implemented through a proper web page but the route to register a new face is available```  
 A computer or smartphone can connect to the private wifi. From there, it has access to a web page that allows it to configure the registered people. It can also switch the door's rasp to "recording" mode where the cameras will take pictures that will allow to record a new face. This operation must be repeated for each camera. This operation must be done once to register the badge.  
 
-## Architecture 
-<img src="./bfc-hardware-arch.png" width="100%">
 
